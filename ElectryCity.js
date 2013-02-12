@@ -1034,7 +1034,7 @@ co.doubleduck.Assets.getRawImage = function(uri) {
 		var bmp = new createjs.Bitmap(uri);
 		co.doubleduck.Assets._cacheData[uri] = bmp.image;
 		cache = bmp.image;
-		haxe.Log.trace("Requsted image that wasn't preloaded, consider preloading - \"" + uri + "\"",{ fileName : "Assets.hx", lineNumber : 239, className : "co.doubleduck.Assets", methodName : "getRawImage"});
+		null;
 	}
 	return cache;
 }
@@ -1051,10 +1051,7 @@ co.doubleduck.Button = $hxClasses["co.doubleduck.Button"] = function(bmp,pauseAf
 	if(clickType == null) clickType = 2;
 	if(pauseAffected == null) pauseAffected = true;
 	createjs.Container.call(this);
-	if(clickSound == null) {
-		haxe.Log.trace("HERE",{ fileName : "Button.hx", lineNumber : 38, className : "co.doubleduck.Button", methodName : "new"});
-		clickSound = "sound/button_click";
-	}
+	if(clickSound == null) clickSound = "sound/button_click";
 	this._clickSound = clickSound;
 	this._bitmap = bmp;
 	this._bitmap.mouseEnabled = true;
@@ -1110,7 +1107,7 @@ co.doubleduck.Button.prototype = $extend(createjs.Container.prototype,{
 		if(this.onClick != null) {
 			if(this._clickSound != null) {
 				co.doubleduck.SoundManager.playEffect(this._clickSound);
-				haxe.Log.trace("" + this._clickSound,{ fileName : "Button.hx", lineNumber : 85, className : "co.doubleduck.Button", methodName : "handlePress"});
+				null;
 			}
 			switch(this._clickType) {
 			case co.doubleduck.Button.CLICK_TYPE_TINT:
@@ -1357,7 +1354,7 @@ co.doubleduck.CellPath.prototype = $extend(co.doubleduck.GridCell.prototype,{
 		if(myPos != -1) {
 			if(this._chainParent.isBackColorOn()) {
 				co.doubleduck.SoundManager.playEffect("sound/disconnected");
-				haxe.Log.trace("DISCON",{ fileName : "CellPath.hx", lineNumber : 95, className : "co.doubleduck.CellPath", methodName : "cutTrace"});
+				null;
 			}
 			this._chainParent.setBackColor(false);
 			var _g1 = 0, _g = chain.length;
@@ -1843,10 +1840,7 @@ co.doubleduck.Game.prototype = {
 		if(hidden) co.doubleduck.SoundManager.mute(); else if(!co.doubleduck.SoundManager.getPersistedMute()) co.doubleduck.SoundManager.unmute();
 	}
 	,showSplash: function() {
-		if(viewporter.ACTIVE) js.Lib.document.body.bgColor = "#00A99D"; else {
-			haxe.Log.trace(">>> viewporter is NOT active",{ fileName : "Game.hx", lineNumber : 118, className : "co.doubleduck.Game", methodName : "showSplash"});
-			js.Lib.document.body.bgColor = "#D94D00";
-		}
+		if(viewporter.ACTIVE) js.Lib.document.body.bgColor = "#00A99D"; else js.Lib.document.body.bgColor = "#D94D00";
 		this._splash = co.doubleduck.Assets.getImage("images/splash_logo.png");
 		this._splash.regX = this._splash.image.width / 2;
 		this._splash.regY = this._splash.image.height / 2;
@@ -2132,7 +2126,6 @@ co.doubleduck.Grid.prototype = $extend(createjs.Container.prototype,{
 						prevCell.toggleWire(co.doubleduck.GridCell.DIRECT_UP);
 						currCell.toggleWire(co.doubleduck.GridCell.DIRECT_DOWN);
 					} else {
-						haxe.Log.trace("ERROR: moved more than one cell at once. This shouldn't happen.",{ fileName : "Grid.hx", lineNumber : 364, className : "co.doubleduck.Grid", methodName : "handleTick"});
 						if(js.Boot.__instanceof(currCell,co.doubleduck.CellPath)) {
 							var cPath = currCell;
 							cPath.setParentChain(null);
@@ -2757,7 +2750,7 @@ co.doubleduck.audio.WebAudioAPI.saveBuffer = function(buffer,name) {
 	co.doubleduck.audio.WebAudioAPI._buffers[name] = buffer;
 }
 co.doubleduck.audio.WebAudioAPI.decodeError = function() {
-	haxe.Log.trace("decode error",{ fileName : "WebAudioAPI.hx", lineNumber : 64, className : "co.doubleduck.audio.WebAudioAPI", methodName : "decodeError"});
+	null;
 }
 co.doubleduck.audio.WebAudioAPI.prototype = {
 	setVolume: function(volume) {
