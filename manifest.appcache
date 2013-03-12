@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# V1.29
+# V1.31
 
 NETWORK:
 *
@@ -9,6 +9,7 @@ createjs/easeljs-0.5.0.min.js
 createjs/preloadjs-0.2.0.min.js
 createjs/soundjs-0.3.0.min.js
 createjs/tweenjs-0.3.0.min.js
+images/favicon.png
 images/fb-share.png
 images/loading_fill.png
 images/loading_stroke.png
