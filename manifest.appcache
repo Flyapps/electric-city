@@ -1,10 +1,12 @@
 CACHE MANIFEST
-# V1.31
+# V1.32
 
 NETWORK:
 *
 
 CACHE:
+index.html
+ElectryCity.js
 createjs/easeljs-0.5.0.min.js
 createjs/preloadjs-0.2.0.min.js
 createjs/soundjs-0.3.0.min.js
@@ -83,6 +85,3 @@ sound/theme_music.mp3
 sound/theme_music.ogg
 data/GameplayDB.js
 data/LevelDB.js
-# --- Add game files --- #
-index.html
-ElectryCity.js

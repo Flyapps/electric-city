@@ -1047,17 +1047,112 @@ co.doubleduck.Assets.getImage = function(uri,mouseEnabled) {
 co.doubleduck.Assets.prototype = {
 	__class__: co.doubleduck.Assets
 }
+co.doubleduck.LabeledContainer = $hxClasses["co.doubleduck.LabeledContainer"] = function(bmp) {
+	createjs.Container.call(this);
+	this._bitmap = bmp;
+	if(this._bitmap != null) {
+		if(js.Boot.__instanceof(this._bitmap,createjs.Bitmap)) {
+			this._bmp = this._bitmap;
+			this.image = this._bmp.image;
+		} else if(js.Boot.__instanceof(this._bitmap,createjs.BitmapAnimation)) {
+			this.anim = this._bitmap;
+			this.image = { width : this.anim.spriteSheet._frameWidth, height : this.anim.spriteSheet._frameHeight};
+		}
+	}
+};
+co.doubleduck.LabeledContainer.__name__ = ["co","doubleduck","LabeledContainer"];
+co.doubleduck.LabeledContainer.__super__ = createjs.Container;
+co.doubleduck.LabeledContainer.prototype = $extend(createjs.Container.prototype,{
+	getLabel: function() {
+		return this._label;
+	}
+	,addBitmap: function() {
+		this.addChild(this._bitmap);
+	}
+	,addCenteredBitmap: function() {
+		this._bitmap.regX = this.image.width / 2;
+		this._bitmap.regY = this.image.height / 2;
+		this._bitmap.x = this.image.width / 2;
+		this._bitmap.y = this.image.height / 2;
+		this.addChild(this._bitmap);
+	}
+	,addBitmapLabel: function(label,fontType,padding,centered) {
+		if(centered == null) centered = true;
+		if(padding == null) padding = 0;
+		if(fontType == null) fontType = "";
+		if(this._bitmapText != null) this.removeChild(this._bitmapText);
+		var fontHelper = new co.doubleduck.FontHelper(fontType);
+		this._bitmapText = fontHelper.getNumber(Std.parseInt(label),1,true,null,padding,centered);
+		if(this.image != null) {
+			this._bitmapText.x = this.image.width / 2;
+			this._bitmapText.y = this.image.height / 2;
+		}
+		this._label = label;
+		this.addChild(this._bitmapText);
+	}
+	,scaleBitmapFont: function(scale) {
+		this._bitmapText.scaleX = this._bitmapText.scaleY = scale;
+	}
+	,shiftLabel: function(shiftX,shiftY) {
+		this._bitmapText.x *= shiftX;
+		this._bitmapText.y *= shiftY;
+	}
+	,setBitmapLabelY: function(ly) {
+		this._bitmapText.y = ly;
+	}
+	,setBitmapLabelX: function(lx) {
+		this._bitmapText.x = lx;
+	}
+	,getBitmapLabelWidth: function() {
+		var maxWidth = 0;
+		var _g1 = 0, _g = this._bitmapText.getNumChildren();
+		while(_g1 < _g) {
+			var digit = _g1++;
+			var currentDigit = js.Boot.__cast(this._bitmapText.getChildAt(digit) , createjs.Bitmap);
+			var endsAt = currentDigit.x + currentDigit.image.width;
+			if(endsAt > maxWidth) maxWidth = endsAt;
+		}
+		return maxWidth;
+	}
+	,setLabelY: function(ly) {
+		this._text.y = ly;
+	}
+	,setLabelX: function(lx) {
+		this._text.x = lx;
+	}
+	,addLabel: function(label,color) {
+		if(color == null) color = "#000000";
+		if(this._text != null) this.removeChild(this._text);
+		this._label = label;
+		this._text = new createjs.Text(label,"bold 22px Arial",color);
+		this._text.regY = this._text.getMeasuredHeight() / 2;
+		this._text.textAlign = "center";
+		if(this._bitmap != null) {
+			this._text.x = this._bitmap.x;
+			this._text.y = this._bitmap.y;
+		}
+		this.addChild(this._text);
+	}
+	,changeText: function(txt) {
+	}
+	,_bitmapText: null
+	,_text: null
+	,_bmp: null
+	,_bitmap: null
+	,_label: null
+	,anim: null
+	,image: null
+	,__class__: co.doubleduck.LabeledContainer
+});
 co.doubleduck.Button = $hxClasses["co.doubleduck.Button"] = function(bmp,pauseAffected,clickType,clickSound) {
 	if(clickType == null) clickType = 2;
 	if(pauseAffected == null) pauseAffected = true;
-	createjs.Container.call(this);
-	if(clickSound == null) clickSound = "sound/button_click";
-	this._clickSound = clickSound;
-	this._bitmap = bmp;
+	this._lastClickTime = 0;
+	co.doubleduck.LabeledContainer.call(this,bmp);
+	if(clickSound == null && co.doubleduck.Button._defaultSound != null) this._clickSound = co.doubleduck.Button._defaultSound; else this._clickSound = clickSound;
 	this._bitmap.mouseEnabled = true;
 	this._clickType = clickType;
 	this._pauseAffected = pauseAffected;
-	this.image = this._bitmap.image;
 	if(clickType == co.doubleduck.Button.CLICK_TYPE_TOGGLE) {
 		var initObject = { };
 		var size = this.image.width / 2;
@@ -1067,55 +1162,54 @@ co.doubleduck.Button = $hxClasses["co.doubleduck.Button"] = function(bmp,pauseAf
 		this._states.gotoAndStop(0);
 		this.onClick = $bind(this,this.handleToggle);
 		this.addChild(this._states);
-	} else {
-		this._bitmap.regX = this.image.width / 2;
-		this._bitmap.regY = this.image.height / 2;
-		this._bitmap.x = this.image.width / 2;
-		this._bitmap.y = this.image.height / 2;
-		this.addChild(this._bitmap);
-	}
+	} else this.addCenteredBitmap();
 	this.onPress = $bind(this,this.handlePress);
 };
 co.doubleduck.Button.__name__ = ["co","doubleduck","Button"];
-co.doubleduck.Button.__super__ = createjs.Container;
-co.doubleduck.Button.prototype = $extend(createjs.Container.prototype,{
-	getLabel: function() {
-		return this._label;
-	}
-	,addLabel: function(label) {
-		var fontHelper = new co.doubleduck.FontHelper(co.doubleduck.FontHelper.FONT_MENU);
-		var num = fontHelper.getNumber(Std.parseInt(label),1,true);
-		num.x = this.image.width / 2;
-		num.y = this.image.height / 2;
-		this._label = label;
-		this.addChild(num);
-	}
-	,handleEndPress: function() {
-		co.doubleduck.Utils.tintBitmap(this._bitmap,1,1,1,1);
+co.doubleduck.Button.setDefaultSound = function(sound) {
+	co.doubleduck.Button._defaultSound = sound;
+}
+co.doubleduck.Button.__super__ = co.doubleduck.LabeledContainer;
+co.doubleduck.Button.prototype = $extend(co.doubleduck.LabeledContainer.prototype,{
+	handleEndPressTint: function() {
+		co.doubleduck.Utils.tintBitmap(this._bmp,1,1,1,1);
 		if(createjs.Ticker.getPaused()) co.doubleduck.Game.getStage().update();
 	}
 	,setToggle: function(flag) {
 		if(flag) this._states.gotoAndStop(0); else this._states.gotoAndStop(1);
 	}
-	,handleToggle: function() {
+	,handleToggle: function(e) {
 		if(this.onToggle == null) return;
+		if(this._lastClickPos == null) this._lastClickPos = new createjs.Point(0,0);
+		if((this._lastClickPos.x < e.stageX + 1 || this._lastClickPos.x > e.stageX + 1) && (this._lastClickPos.y < e.stageY + 1 || this._lastClickPos.y > e.stageY + 1)) {
+			var now = createjs.Ticker.getTime(true);
+			if(now < this._lastClickTime + 500) return;
+		}
+		this._lastClickPos.x = e.stageX;
+		this._lastClickPos.y = e.stageY;
+		this._lastClickTime = createjs.Ticker.getTime(true);
 		this._states.gotoAndStop(1 - this._states.currentFrame);
 		this.onToggle();
 	}
-	,handlePress: function() {
+	,handlePress: function(event) {
 		if(createjs.Ticker.getPaused() && this._pauseAffected) return;
-		if(this.onClick != null) {
-			if(this._clickSound != null) {
-				co.doubleduck.SoundManager.playEffect(this._clickSound);
-				null;
+		if(this._clickType == co.doubleduck.Button.CLICK_TYPE_HOLD) {
+			if(this.onHoldStart != null) {
+				this.onHoldStart();
+				event.onMouseUp = this.onHoldFinish;
 			}
+		}
+		if(this.onClick != null) {
+			if(this._clickSound != null) co.doubleduck.SoundManager.playEffect(this._clickSound);
 			switch(this._clickType) {
 			case co.doubleduck.Button.CLICK_TYPE_TINT:
-				co.doubleduck.Utils.tintBitmap(this._bitmap,0.55,0.55,0.55,1);
-				var tween = createjs.Tween.get(this._bitmap);
-				tween.ignoreGlobalPause = true;
-				tween.wait(200).call($bind(this,this.handleEndPress));
-				if(createjs.Ticker.getPaused()) co.doubleduck.Game.getStage().update();
+				if(this._bmp != null) {
+					co.doubleduck.Utils.tintBitmap(this._bmp,0.55,0.55,0.55,1);
+					var tween = createjs.Tween.get(this._bmp);
+					tween.ignoreGlobalPause = true;
+					tween.wait(200).call($bind(this,this.handleEndPressTint));
+					if(createjs.Ticker.getPaused()) co.doubleduck.Game.getStage().update();
+				}
 				break;
 			case co.doubleduck.Button.CLICK_TYPE_JUICY:
 				this._juiceTween = createjs.Tween.get(this._bitmap);
@@ -1139,21 +1233,25 @@ co.doubleduck.Button.prototype = $extend(createjs.Container.prototype,{
 				break;
 			case co.doubleduck.Button.CLICK_TYPE_NONE:
 				break;
+			case co.doubleduck.Button.CLICK_TYPE_HOLD:
+				throw "Use onHoldStart with CLICK_TYPE_HOLD, not onClick";
+				break;
 			}
 		}
 	}
 	,setNoSound: function() {
 		this._clickSound = null;
 	}
-	,_label: null
+	,_lastClickPos: null
+	,_lastClickTime: null
 	,_clickSound: null
 	,_juiceTween: null
 	,_clickType: null
 	,_pauseAffected: null
 	,_states: null
-	,_bitmap: null
+	,onHoldFinish: null
+	,onHoldStart: null
 	,onToggle: null
-	,image: null
 	,__class__: co.doubleduck.Button
 });
 co.doubleduck.GridCell = $hxClasses["co.doubleduck.GridCell"] = function() {
@@ -1519,7 +1617,9 @@ co.doubleduck.FontHelper = $hxClasses["co.doubleduck.FontHelper"] = function(typ
 };
 co.doubleduck.FontHelper.__name__ = ["co","doubleduck","FontHelper"];
 co.doubleduck.FontHelper.prototype = {
-	getNumber: function(num,scale,forceContainer,dims) {
+	getNumber: function(num,scale,forceContainer,dims,padding,centered) {
+		if(centered == null) centered = true;
+		if(padding == null) padding = 0;
 		if(forceContainer == null) forceContainer = false;
 		if(scale == null) scale = 1;
 		if(num >= 0 && num < 10) {
@@ -1527,8 +1627,10 @@ co.doubleduck.FontHelper.prototype = {
 			var bmp = this.getDigit(num);
 			bmp.scaleX = bmp.scaleY = scale;
 			result.addChild(bmp);
-			result.regX = bmp.image.width / 2;
-			result.regY = bmp.image.height / 2;
+			if(centered) {
+				result.regX = bmp.image.width / 2;
+				result.regY = bmp.image.height / 2;
+			}
 			if(forceContainer) {
 				if(dims != null) {
 					dims.width = bmp.image.width;
@@ -1548,7 +1650,7 @@ co.doubleduck.FontHelper.prototype = {
 			if(numString.length == 4 || numString.length == 7) {
 				this._lastComma = this.getComma();
 				this._lastComma.scaleX = this._lastComma.scaleY = scale;
-				this._lastComma.x = digits[0].x + digits[0].image.width;
+				this._lastComma.x = digits[0].x + digits[0].image.width + padding;
 				result.addChild(this._lastComma);
 				totalWidth += this._lastComma.image.width * scale;
 			}
@@ -1557,20 +1659,22 @@ co.doubleduck.FontHelper.prototype = {
 				var i = _g1++;
 				var index = digits.length;
 				digits[index] = this.getDigit(Std.parseInt(HxOverrides.substr(numString,i,1)));
-				if(numString.length - i == 3 || numString.length - i == 6) digits[index].x = this._lastComma.x + this._lastComma.image.width; else digits[index].x = digits[index - 1].x + digits[index - 1].image.width;
+				if(numString.length - i == 3 || numString.length - i == 6) digits[index].x = this._lastComma.x + this._lastComma.image.width + padding; else digits[index].x = digits[index - 1].x + digits[index - 1].image.width + padding;
 				digits[index].scaleX = digits[index].scaleY = scale;
 				result.addChild(digits[index]);
-				totalWidth += digits[index].image.width * scale;
+				totalWidth += digits[index].image.width * scale + padding;
 				if(numString.length - i == 4 || numString.length - i == 7) {
 					this._lastComma = this.getComma();
 					this._lastComma.scaleX = this._lastComma.scaleY = scale;
-					this._lastComma.x = digits[index].x + digits[index].image.width;
+					this._lastComma.x = digits[index].x + digits[index].image.width + padding;
 					result.addChild(this._lastComma);
-					totalWidth += this._lastComma.image.width * scale;
+					totalWidth += this._lastComma.image.width * scale + padding;
 				}
 			}
-			result.regX = totalWidth / 2;
-			result.regY = digits[0].image.height / 2;
+			if(centered) {
+				result.regX = totalWidth / 2;
+				result.regY = digits[0].image.height / 2;
+			}
 			if(dims != null) {
 				dims.width = totalWidth;
 				dims.height = digits[0].image.height;
@@ -1583,7 +1687,7 @@ co.doubleduck.FontHelper.prototype = {
 		return digit1;
 	}
 	,getComma: function() {
-		return co.doubleduck.Assets.getImage(this._fontType + ",.png");
+		return co.doubleduck.Assets.getImage(this._fontType + "comma.png");
 	}
 	,_fontType: null
 	,_lastComma: null
@@ -2212,6 +2316,7 @@ co.doubleduck.Main.getFFHeight = function() {
 co.doubleduck.Menu = $hxClasses["co.doubleduck.Menu"] = function() {
 	this._menuDestroyed = false;
 	createjs.Container.call(this);
+	co.doubleduck.Button.setDefaultSound("sound/button_click");
 	this._numLevels = new LevelDB().getAllLevels().length;
 	var focusLevel = co.doubleduck.Persistence.getUnlockedLevel();
 	if(focusLevel > this._numLevels) focusLevel = this._numLevels;
@@ -2257,7 +2362,7 @@ co.doubleduck.Menu = $hxClasses["co.doubleduck.Menu"] = function() {
 				currLevel.y = y;
 				_currPage.addChild(currLevel);
 				if(clickable) currLevel.onClick = $bind(this,this.handlePlayClick);
-				if(label != "") currLevel.addLabel(label);
+				if(label != "") currLevel.addBitmapLabel(label,"images/menu/font/");
 			}
 		}
 		pageWidth = co.doubleduck.Menu.CELL_WIDTH * co.doubleduck.Menu.COLS + co.doubleduck.Menu.PADDING_WIDTH * (co.doubleduck.Menu.COLS - 1);
@@ -2351,7 +2456,12 @@ co.doubleduck.Menu.prototype = $extend(createjs.Container.prototype,{
 		var angle = this._earth.rotation + elapsed / 1000 * co.doubleduck.Menu.ROTATION_PER_SEC;
 		if(angle > 360) angle = 0;
 		this._earth.rotation = angle;
-		if(Math.abs(this._levelsTargetX - this._allLevels.x) > 0.1) this._allLevels.x += (this._levelsTargetX - this._allLevels.x) * elapsed * co.doubleduck.Menu.SWIPE_EASE;
+		if(Math.abs(this._levelsTargetX - this._allLevels.x) > 0.1) {
+			var delta = co.doubleduck.Menu.SWIPE_EASE * elapsed;
+			delta = Math.min(delta,0.2);
+			delta *= this._levelsTargetX - this._allLevels.x;
+			this._allLevels.x += delta;
+		}
 	}
 	,destroy: function() {
 		this._menuDestroyed = true;
@@ -4069,6 +4179,8 @@ co.doubleduck.Button.CLICK_TYPE_TINT = 1;
 co.doubleduck.Button.CLICK_TYPE_JUICY = 2;
 co.doubleduck.Button.CLICK_TYPE_SCALE = 3;
 co.doubleduck.Button.CLICK_TYPE_TOGGLE = 4;
+co.doubleduck.Button.CLICK_TYPE_HOLD = 5;
+co.doubleduck.Button._defaultSound = null;
 co.doubleduck.GridCell.SIZE = 95;
 co.doubleduck.GridCell.COLORS = 9;
 co.doubleduck.GridCell.WIRE_NONE = 0;
@@ -4086,8 +4198,6 @@ co.doubleduck.CellStructure.TYPE_SOURCE = 0;
 co.doubleduck.CellStructure.TYPE_TARGET = 1;
 co.doubleduck.CellStructure._sheets = null;
 co.doubleduck.CellStructure._sheetsLighten = null;
-co.doubleduck.FontHelper.FONT_MENU = "images/menu/font/";
-co.doubleduck.FontHelper.FONT_HUD = "images/hud/hud_font/";
 co.doubleduck.Game._viewport = null;
 co.doubleduck.Game._scale = 1;
 co.doubleduck.Game.MAX_HEIGHT = 641;
