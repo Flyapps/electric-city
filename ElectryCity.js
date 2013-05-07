@@ -1701,7 +1701,10 @@ co.doubleduck.Game = $hxClasses["co.doubleduck.Game"] = function(stage) {
 	isGS3Stock = isGS3Stock && /GT-I9300/.test(navigator.userAgent);
 	isGS3Stock = isGS3Stock && !/Chrome/.test(navigator.userAgent);
 	if(isGS3Stock) {
-		js.Lib.alert("This phone's version is not supported. please update your phone's software.");
+		var loc = window.location.href;
+		if(loc.lastIndexOf("index.html") != -1) loc = HxOverrides.substr(loc,0,loc.lastIndexOf("index.html"));
+		loc += "error.html";
+		window.location.href=loc;
 		return;
 	}
 	co.doubleduck.Persistence.initGameData();
@@ -1837,20 +1840,6 @@ co.doubleduck.Game.prototype = {
 		co.doubleduck.Game._stage.removeChild(this._logo);
 	}
 	,closeSplash: function() {
-		if(co.doubleduck.SoundManager.engineType == co.doubleduck.SoundType.AUDIO_NO_OVERLAP) {
-			var nonUserInitedSounds = new Array();
-			nonUserInitedSounds.push("sound/connected 2");
-			nonUserInitedSounds.push("sound/connected 3");
-			nonUserInitedSounds.push("sound/disconnected");
-			nonUserInitedSounds.push("sound/Planting pole");
-			nonUserInitedSounds.push("sound/Complete puzzle");
-			var _g1 = 0, _g = nonUserInitedSounds.length;
-			while(_g1 < _g) {
-				var currSound = _g1++;
-				var sfx = co.doubleduck.SoundManager.playEffect(nonUserInitedSounds[currSound]);
-				sfx.stop();
-			}
-		}
 		createjs.Tween.get(this._splashScreen).wait(250).to({ alpha : 0},500).call($bind(this,this.removeSplash));
 		createjs.Tween.get(this._logo).to({ alpha : 0},250);
 		this._splashScreen.onClick = null;
@@ -1859,15 +1848,12 @@ co.doubleduck.Game.prototype = {
 		this.showMenu();
 	}
 	,handleLogoAnimEnd: function() {
-		if(this._logo.currentAnimation == "idle_on") {
-			this.tapToPlayTextAlpha();
-			this._splashScreen.onClick = $bind(this,this.closeSplash);
-		}
+		if(this._logo.currentAnimation == "idle_on") this.tapToPlayTextAlpha();
 	}
 	,turnOnLogo: function() {
 		this._logo.gotoAndPlay("turn_on");
 		this._logo.onAnimationEnd = $bind(this,this.handleLogoAnimEnd);
-		if(co.doubleduck.Persistence.getUnlockedLevel() > 1) this._splashScreen.onClick = $bind(this,this.closeSplash);
+		this._splashScreen.onClick = $bind(this,this.closeSplash);
 	}
 	,logoEase: function(t) {
 		var amplitude = 1;
@@ -2381,15 +2367,15 @@ co.doubleduck.Menu = $hxClasses["co.doubleduck.Menu"] = function() {
 	this._nextBtn.regY = this._nextBtn.image.height / 2;
 	this._nextBtn.y = co.doubleduck.Game.getViewport().height * 0.4;
 	this._nextBtn.regX = this._nextBtn.image.width;
-	this._nextBtn.x = co.doubleduck.Game.getViewport().width - 5 * co.doubleduck.Game.getScale();
+	this._nextBtn.x = co.doubleduck.Game.getViewport().width;
 	this._nextBtn.scaleX = this._nextBtn.scaleY = co.doubleduck.Game.getScale();
 	this._nextBtn.onClick = $bind(this,this.targetNextPack);
 	this.addChild(this._nextBtn);
 	this._prevBtn = new co.doubleduck.Button(co.doubleduck.Assets.getImage("images/menu/btn_arrow_r.png"));
 	this._prevBtn.regY = this._prevBtn.image.height / 2;
-	this._prevBtn.y = co.doubleduck.Game.getViewport().height * 0.4;
-	this._prevBtn.regX = 0;
-	this._prevBtn.x = (this._prevBtn.image.width + 7) * co.doubleduck.Game.getScale();
+	this._prevBtn.y = this._nextBtn.y;
+	this._prevBtn.regX = this._prevBtn.image.width;
+	this._prevBtn.x = 0;
 	this._prevBtn.scaleX = this._prevBtn.scaleY = co.doubleduck.Game.getScale();
 	this._prevBtn.scaleX *= -1;
 	this._prevBtn.onClick = $bind(this,this.targetPrevPack);
