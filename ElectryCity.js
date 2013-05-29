@@ -1786,13 +1786,25 @@ co.doubleduck.Game.prototype = {
 		} else if(isFirefox) this.handleViewportChanged();
 		if(createjs.Ticker.getPaused()) co.doubleduck.Game._stage.update();
 	}
-	,handleNextLevel: function() {
-		var sessionLevel = this._session.getLevel() + 1;
-		this._session.destroy();
-		co.doubleduck.Game._stage.removeChild(this._session);
-		this._session = null;
-		this.startSession(sessionLevel);
-	}
+  ,handleNextLevel: function() {
+    var self = this;
+
+    function nextLevel() {
+      var sessionLevel = self._session.getLevel() + 1;
+      self._session.destroy();
+      co.doubleduck.Game._stage.removeChild(self._session);
+      self._session = null;
+      self.startSession(sessionLevel);
+    }
+
+    if (window.InAppOffer) {
+      new window.InAppOffer({
+        "onRemove": nextLevel
+      });
+    } else {
+      nextLevel();
+    }
+  }
 	,handleBackToMenu: function() {
 		this._session.destroy();
 		co.doubleduck.Game._stage.removeChild(this._session);
